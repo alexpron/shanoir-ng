@@ -1,0 +1,106 @@
+services:
+
+  api:
+    env_file: "neurobagel.env"
+    image: "neurobagel/api:${NB_NAPI_TAG:-latest}"
+    profiles:
+      - "local_node"
+      - "local_node_query"
+      - "full_stack"
+    ports:
+      - "${NB_NAPI_PORT_HOST:-8000}:${NB_NAPI_PORT:-8000}"
+    environment:
+      NB_GRAPH_USERNAME: ${NB_GRAPH_USERNAME}
+      NB_GRAPH_ADDRESS: ${NB_GRAPH_ADDRESS:-graph}
+      NB_GRAPH_PORT: ${NB_GRAPH_PORT:-7200}
+      NB_GRAPH_DB: ${NB_GRAPH_DB:-repositories/my_db}
+      NB_RETURN_AGG: ${NB_RETURN_AGG:-true}
+      NB_API_PORT: ${NB_NAPI_PORT:-8000}
+      NB_API_ALLOWED_ORIGINS: ${NB_NAPI_ALLOWED_ORIGINS}
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+    volumes:
+      - "./scripts/api_entrypoint.sh:/usr/src/api_entrypoint.sh"
+    entrypoint:
+      - "/usr/src/api_entrypoint.sh"
+    secrets:
+      - db_user_password
+
+  graph:
+    env_file: "neurobagel.env"
+    image: "${NB_GRAPH_IMG:-ontotext/graphdb:10.3.1}"
+    profiles:
+      - "local_node"
+      - "local_node_query"
+      - "full_stack"
+    volumes:
+      - "graphdb_home:/opt/graphdb/home"
+      - "./scripts:/usr/src/neurobagel/scripts"
+      - ".env:/usr/src/neurobagel/.env"
+      - "./vocab:/usr/src/neurobagel/vocab"
+      - "${LOCAL_GRAPH_DATA:-./data}:/data"
+    ports:
+      - "${NB_GRAPH_PORT_HOST:-7200}:${NB_GRAPH_PORT:-7200}"
+    environment:
+      NB_GRAPH_USERNAME: ${NB_GRAPH_USERNAME}
+      NB_GRAPH_ADDRESS: ${NB_GRAPH_ADDRESS:-graph}
+      NB_GRAPH_PORT: ${NB_GRAPH_PORT:-7200}
+      NB_GRAPH_DB: ${NB_GRAPH_DB:-repositories/my_db}
+    entrypoint:
+      - "/usr/src/neurobagel/scripts/setup.sh"
+    working_dir: "/usr/src/neurobagel/scripts"
+    secrets:
+      - db_admin_password
+      - db_user_password
+
+  federation:
+    env_file: "neurobagel.env"
+    image: "neurobagel/federation_api:${NB_FAPI_TAG:-latest}"
+    profiles:
+      - "local_federation"
+      - "full_stack"
+    ports:
+      - "${NB_FAPI_PORT_HOST:-8080}:${NB_FAPI_PORT:-8000}"
+    volumes:
+      - "./local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro"
+    environment:
+      NB_API_PORT: ${NB_FAPI_PORT:-8000}
+      NB_FEDERATE_REMOTE_PUBLIC_NODES: ${NB_FEDERATE_REMOTE_PUBLIC_NODES:-True}
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+
+  query_federation:
+    env_file: "neurobagel.env"
+    image: "neurobagel/query_tool:${NB_QUERY_TAG:-latest}"
+    profiles:
+      - "local_federation"
+      - "full_stack"
+    ports:
+      - "${NB_QUERY_PORT_HOST:-3000}:5173"
+    environment:
+      NB_API_QUERY_URL: ${NB_API_QUERY_URL}
+      NB_IS_FEDERATION_API: "true"
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+  
+  query_local:
+    env_file: "neurobagel.env"
+    image: "neurobagel/query_tool:${NB_QUERY_TAG:-latest}"
+    profiles:
+      - "local_node_query"
+    ports:
+      - "${NB_QUERY_PORT_HOST:-3000}:5173"
+    environment:
+      NB_API_QUERY_URL: ${NB_API_QUERY_URL}
+      NB_IS_FEDERATION_API: "false"
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+
+secrets:
+  db_admin_password:
+    environment: "NB_GRAPH_ADMIN_PASSWORD"
+  db_user_password:
+    environment: "NB_GRAPH_PASSWORD"
+
+volumes:
+  graphdb_home:
