@@ -1,3 +1,6 @@
 [submodule "shanoir-downloader"]
 	path = shanoir-downloader
 	url = git@github.com:Inria-Empenn/shanoir_downloader.git
+[submodule "shanoir-neurobagel"]
+	path = shanoir-neurobagel
+	url = git@github.com:neurobagel/recipes.git
