@@ -33,7 +33,7 @@ There are  two main ways to contribute to Shanoir-NG
 To learn how to contribute to the code of Shanoir report to the Shanoir-NG 
 [Contribution Workflow](https://github.com/fli-iam/shanoir-ng/wiki/Contribution-Workflow)
 
-To scroll existing issues and open a new open eventually report to [Github Issues](https://github.com/fli-iam/shanoir-ng/issues). 
+To scroll existing issues and open a new one eventually, report to [Github Issues](https://github.com/fli-iam/shanoir-ng/issues). 
 
 ## Shanoir Developpers Quick Installation
 To quickly bootstrap a Shanoir development environment follow the
